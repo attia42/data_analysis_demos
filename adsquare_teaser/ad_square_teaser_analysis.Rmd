@@ -45,7 +45,7 @@ rcorr(as.matrix(d), type="spearman")
 The most significant correlation is X4~Earnings with negative monotonic and linear correlation ~= -0.8
 
 ## Q2 Describe briefly the algorithm you used to answer (1), and justify how good your answer is?
-As calculated the X4 is the most correlated variable with Earnings, the correlation is negatively linear -0.8, and with P-Value at the minimum 0.00, which refutes the null hyposis and supports the significance of the correlation.
+The pearson and spearman correlation co-efficients are calculated to measure the linear and monotonic correlation between each pair of variables, X4 is the most correlated variable with Earnings, the correlation is negatively linear -0.8, and with P-Value at the minimum 0.00, which refutes the null hyposis and supports the significance of the correlation.
 
 ## Q3 Can you plot this data in a way that helps understand the relationship between one or more of {X1, X2, X3, X4, X5}, against ‘Earnings’?
 
