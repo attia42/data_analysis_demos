@@ -1,0 +1,94 @@
+AdSquare Data Teaser Analysis
+========================================================
+
+This analysis will try to find correlation between data collected and stored in a JSON file. The object contains index variable {0:99}, that's the 
+number of observations collected are 100, and there are 5 collected variables: {x1,x2,x3,x4,x5}, an Earnings variable asscoiated for each observation and a Zeta variable which has NA values.
+
+```{r}
+library('rjson')
+library('psych')
+library('Hmisc')
+file <- 'adsquare_teaser_dataMay2014.json'
+data <- fromJSON(paste(readLines(file), collapse=""))
+
+x1 <- data[[2]]
+x2 <- data[[3]]
+x3 <- data[[4]]
+x4 <- data[[5]]
+x5 <- data[[6]]
+ern <- data[[7]]
+z <- data[[8]]
+
+x1 = sapply(seq(100), function(i) x1[[i]])
+x2 = sapply(seq(100), function(i) x2[[i]])
+x3 = sapply(seq(100), function(i) x3[[i]])
+x4 = sapply(seq(100), function(i) x4[[i]])
+x5 = sapply(seq(100), function(i) x5[[i]])
+ern = sapply(seq(100), function(i) ern[[i]])
+
+z <- sapply(seq(100), function(i) z[[i]])
+
+z <- lapply(z, as.numeric)
+z <- as.numeric(z)
+
+
+d = data.frame(x1,x2,x3,x4,x5, z, ern)
+
+summary(d)
+```
+## Q1 Can you find any relation between one or more of the input columns {X1, X2, X3, X4, X5} and the ‘Earnings’ of the company?
+I used the rcorr function to get more rigid analysis of correlation by also checking the P-Values:
+```{r fig.width=7, fig.height=6}
+rcorr(as.matrix(d), type="pearson")
+rcorr(as.matrix(d), type="spearman")
+```
+The most significant correlation is X4~Earnings with negative monotonic and linear correlation ~= -0.8
+
+## Q2 Describe briefly the algorithm you used to answer (1), and justify how good your answer is?
+As calculated the X4 is the most correlated variable with Earnings, the correlation is negatively linear -0.8, and with P-Value at the minimum 0.00, which refutes the null hyposis and supports the significance of the correlation.
+
+## Q3 Can you plot this data in a way that helps understand the relationship between one or more of {X1, X2, X3, X4, X5}, against ‘Earnings’?
+
+```{r fig.width=10, fig.height=8}
+plot(d$ern, type='l', col="red")
+
+lines(d$x4, type='l', col="blue")
+legend("topright", c("Earnings","X4"), lty=c(1,1),lwd=c(2.5,2.5),col=c("red","blue"))
+```
+In a normalized plot, the negative correlation will appear better:
+```{r fig.width=14, fig.height=8, message=FALSE, warning=FALSE}
+plot(d$ern, type='l', col="red", ylab='', xlab='', labels = FALSE)
+par(new=T)
+plot(d$x4, type='l', col="blue", ylab='', xlab='', labels = FALSE)
+legend("topright", c("Earnings","X4"), lty=c(1,1),lwd=c(2.5,2.5),col=c("red","blue"))
+```
+## Q5 How do you think the Zeta column is dependent on the {X1, X2, X3, X4, X5} ? Describe your approach briefly.
+Checking the correlation values of Zeta and other variables, I found that X4 also is the most correlated variable with positve correlation = 0.91, this plot will show it: 
+```{r fig.width=7, fig.height=6, message=FALSE, warning=FALSE}
+
+zn = z[!is.na(z)]
+x4n  = x4[!is.na(z)]
+
+plot(x4n, col="blue", type='l')
+lines(zn, col="red", type='l')
+legend("topright", c("X4","Zeta"), lty=c(1,1),lwd=c(2.5,2.5),col=c("blue","red"))
+```
+
+## Q4 Can you extract any intelligence from the data set to predict the missing ‘Zeta’ values?
+
+I used a normalization technique to get the values of Zeta from X4, where the missing value of Zeta can be got by normalizing X4 between [Min(Zeta), Max(Zeta)]
+
+```{r fig.width=10, fig.height=8, message=FALSE, warning=FALSE}
+mnX4n = min(x4n)
+mxX4n = max(x4n)
+mnZn = min(zn)
+mxZn = max(zn)
+calcZ <- function(xn)(((xn - mnX4n)* (mxZn - mnZn))/ (mxX4n - mnX4n))+mnZn
+plot(x4n, col="blue", type='l')
+lines(zn, col="red", type='l', ylab='', xlab='', labels = FALSE)
+
+
+lines(calcZ(x4n), col="green", type='l', ylab='', xlab='', labels = FALSE)
+legend("topright", c("X4","Zeta", "Normalized X4"), lty=c(1,1),lwd=c(2.5,2.5),col=c("blue","red", "green"))
+
+```
